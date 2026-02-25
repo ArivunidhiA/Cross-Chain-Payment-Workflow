@@ -32,19 +32,23 @@ const socials = [
 
 export default function LandingPage() {
   return (
-    <div className="relative w-full h-screen">
-      <div className="absolute inset-0" style={{ filter: "brightness(0.5)" }}>
-        <Component
-          color="rgba(128, 128, 128, 1)"
-          animation={{ scale: 100, speed: 90 }}
-          noise={{ opacity: 1, scale: 1.2 }}
-          sizing="fill"
-        />
-      </div>
+    <div className="relative w-full h-screen overflow-hidden">
+      <Component
+        color="rgba(128, 128, 128, 1)"
+        animation={{ scale: 100, speed: 90 }}
+        noise={{ opacity: 1, scale: 1.2 }}
+        sizing="fill"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          filter: "brightness(0.5)",
+        }}
+      />
 
-      <div
-        className="absolute inset-0 z-10 flex items-center justify-center"
-      >
+      <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="flex flex-col items-center gap-8 text-center px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
