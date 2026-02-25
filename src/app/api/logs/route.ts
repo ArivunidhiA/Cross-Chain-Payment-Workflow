@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") || undefined;
     const limit = parseInt(searchParams.get("limit") || "100");
 
-    const logs = getAuditLogs({ workflowId, chain, status, limit });
+    const logs = await getAuditLogs({ workflowId, chain, status, limit });
 
     return NextResponse.json({ logs });
   } catch (error) {

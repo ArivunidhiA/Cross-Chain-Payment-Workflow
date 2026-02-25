@@ -16,9 +16,9 @@ const recoveryManager = new RecoveryManager(logger);
 export async function createNewWorkflow(
   definition: WorkflowDefinition
 ): Promise<Workflow> {
-  const workflow = createWorkflow(definition);
+  const workflow = await createWorkflow(definition);
 
-  logger.log({
+  await logger.log({
     workflowId: workflow.id,
     step: -1,
     action: "workflow_created",
@@ -31,7 +31,7 @@ export async function createNewWorkflow(
 }
 
 export async function executeWorkflow(workflowId: string): Promise<Workflow> {
-  let workflow = getWorkflow(workflowId);
+  let workflow = await getWorkflow(workflowId);
   if (!workflow) throw new Error(`Workflow not found: ${workflowId}`);
 
   if (StateMachine.isTerminalWorkflowState(workflow.status)) {
@@ -40,14 +40,14 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
 
   if (workflow.status === "CREATED") {
     StateMachine.transitionWorkflow(workflow.status, "PENDING");
-    updateWorkflowStatus(workflowId, "PENDING");
-    workflow = getWorkflow(workflowId)!;
+    await updateWorkflowStatus(workflowId, "PENDING");
+    workflow = (await getWorkflow(workflowId))!;
   }
 
   StateMachine.transitionWorkflow(workflow.status, "EXECUTING");
-  updateWorkflowStatus(workflowId, "EXECUTING");
+  await updateWorkflowStatus(workflowId, "EXECUTING");
 
-  logger.log({
+  await logger.log({
     workflowId,
     step: -1,
     action: "workflow_execution_started",
@@ -62,9 +62,9 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
   for (let i = workflow.currentStep; i < steps.length; i++) {
     const stepDef = steps[i];
 
-    logger.logStepStart(workflowId, i, stepDef.type, stepDef.chain);
+    await logger.logStepStart(workflowId, i, stepDef.type, stepDef.chain);
 
-    updateWorkflowStep(workflowId, i, stepResults);
+    await updateWorkflowStep(workflowId, i, stepResults);
 
     let result = await executeStep(stepDef, {
       workflowId,
@@ -74,7 +74,7 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
     });
 
     if (result.status === "FAILED") {
-      logger.logStepFailure(
+      await logger.logStepFailure(
         workflowId,
         i,
         stepDef.type,
@@ -83,19 +83,19 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
         result.durationMs || 0
       );
 
-      updateWorkflowStatus(workflowId, "RECOVERING");
+      await updateWorkflowStatus(workflowId, "RECOVERING");
 
       const recovery = await recoveryManager.attemptRecovery(
-        getWorkflow(workflowId)!,
+        (await getWorkflow(workflowId))!,
         result,
         stepDef
       );
 
       if (recovery.recovered && recovery.result) {
         result = recovery.result;
-        updateWorkflowStatus(workflowId, "EXECUTING");
+        await updateWorkflowStatus(workflowId, "EXECUTING");
       } else {
-        updateWorkflowStatus(
+        await updateWorkflowStatus(
           workflowId,
           "WITHDRAWAL_PENDING",
           result.error
@@ -105,20 +105,20 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
           (s) => s.status === "COMPLETED"
         );
         await recoveryManager.executeWithdrawal(
-          getWorkflow(workflowId)!,
+          (await getWorkflow(workflowId))!,
           completedSteps
         );
 
         stepResults[i] = result;
-        updateWorkflowStep(workflowId, i, stepResults);
-        updateWorkflowStatus(workflowId, "WITHDRAWN", result.error);
+        await updateWorkflowStep(workflowId, i, stepResults);
+        await updateWorkflowStatus(workflowId, "WITHDRAWN", result.error);
 
-        return getWorkflow(workflowId)!;
+        return (await getWorkflow(workflowId))!;
       }
     }
 
     if (result.status === "COMPLETED") {
-      logger.logStepComplete(
+      await logger.logStepComplete(
         workflowId,
         i,
         stepDef.type,
@@ -132,12 +132,12 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
     }
 
     stepResults[i] = result;
-    updateWorkflowStep(workflowId, i + 1, stepResults);
+    await updateWorkflowStep(workflowId, i + 1, stepResults);
   }
 
-  updateWorkflowStatus(workflowId, "COMPLETED");
+  await updateWorkflowStatus(workflowId, "COMPLETED");
 
-  logger.log({
+  await logger.log({
     workflowId,
     step: -1,
     action: "workflow_completed",
@@ -146,9 +146,11 @@ export async function executeWorkflow(workflowId: string): Promise<Workflow> {
     message: `Workflow completed successfully. All ${steps.length} steps executed.`,
   });
 
-  return getWorkflow(workflowId)!;
+  return (await getWorkflow(workflowId))!;
 }
 
-export function getWorkflowById(id: string): Workflow | null {
+export async function getWorkflowById(
+  id: string
+): Promise<Workflow | null> {
   return getWorkflow(id);
 }

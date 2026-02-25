@@ -17,7 +17,7 @@ interface LogInput {
 }
 
 export class AuditLogger {
-  log(input: LogInput): AuditEntry {
+  async log(input: LogInput): Promise<AuditEntry> {
     const entry: Omit<AuditEntry, "id"> = {
       workflowId: input.workflowId,
       step: input.step,
@@ -37,12 +37,12 @@ export class AuditLogger {
     return insertAuditLog(entry);
   }
 
-  logStepStart(
+  async logStepStart(
     workflowId: string,
     stepIndex: number,
     type: string,
     chain: ChainId
-  ): AuditEntry {
+  ): Promise<AuditEntry> {
     return this.log({
       workflowId,
       step: stepIndex,
@@ -53,7 +53,7 @@ export class AuditLogger {
     });
   }
 
-  logStepComplete(
+  async logStepComplete(
     workflowId: string,
     stepIndex: number,
     type: string,
@@ -63,7 +63,7 @@ export class AuditLogger {
     token: string,
     durationMs: number,
     gasUsed: string
-  ): AuditEntry {
+  ): Promise<AuditEntry> {
     return this.log({
       workflowId,
       step: stepIndex,
@@ -79,14 +79,14 @@ export class AuditLogger {
     });
   }
 
-  logStepFailure(
+  async logStepFailure(
     workflowId: string,
     stepIndex: number,
     type: string,
     chain: ChainId,
     error: string,
     durationMs: number
-  ): AuditEntry {
+  ): Promise<AuditEntry> {
     return this.log({
       workflowId,
       step: stepIndex,

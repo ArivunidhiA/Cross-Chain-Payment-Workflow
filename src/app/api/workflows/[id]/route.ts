@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const workflow = getWorkflow(id);
+    const workflow = await getWorkflow(id);
 
     if (!workflow) {
       return NextResponse.json(
@@ -16,7 +16,7 @@ export async function GET(
       );
     }
 
-    const auditLogs = getAuditLogs({ workflowId: id, limit: 200 });
+    const auditLogs = await getAuditLogs({ workflowId: id, limit: 200 });
 
     return NextResponse.json({ workflow, auditLogs });
   } catch (error) {

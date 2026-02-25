@@ -8,7 +8,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const workflow = getWorkflow(id);
+    const workflow = await getWorkflow(id);
 
     if (!workflow) {
       return NextResponse.json(
@@ -37,7 +37,6 @@ export async function POST(
       );
     }
 
-    // Fire-and-forget: execute in background so client can poll
     executeWorkflow(id).catch((err) => {
       console.error(`Workflow ${id} execution error:`, err);
     });

@@ -3,7 +3,7 @@ import { getWorkflowStats } from "@/db/store";
 
 export async function GET() {
   try {
-    const stats = getWorkflowStats();
+    const stats = await getWorkflowStats();
     const successRate =
       stats.total > 0
         ? Math.round((stats.completed / stats.total) * 100)

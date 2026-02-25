@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") as WorkflowStatus | null;
     const limit = parseInt(searchParams.get("limit") || "50");
 
-    const workflows = listWorkflows(status || undefined, limit);
+    const workflows = await listWorkflows(status || undefined, limit);
 
     return NextResponse.json({
       workflows,
