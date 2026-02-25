@@ -10,8 +10,15 @@ import type {
 } from "@/types";
 
 function getSQL() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL environment variable is not set");
+  const url =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_URL_NON_POOLING;
+  if (!url) {
+    throw new Error(
+      "No database connection string found. Set DATABASE_URL or POSTGRES_URL."
+    );
+  }
   return neon(url);
 }
 
