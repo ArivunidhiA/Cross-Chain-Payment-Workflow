@@ -1,32 +1,48 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Component } from "@/components/ui/etheral-shadow";
 
 interface EtherealBackgroundProps {
   fixed?: boolean;
 }
 
+const BASE_W = 800;
+const BASE_H = 450;
+
 export function EtherealBackground({ fixed = false }: EtherealBackgroundProps) {
+  const [scale, setScale] = useState(4);
+
+  useEffect(() => {
+    function calc() {
+      const sx = window.innerWidth / BASE_W;
+      const sy = window.innerHeight / BASE_H;
+      setScale(Math.max(sx, sy) * 1.1);
+    }
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
+
   return (
     <div
       style={{
         position: fixed ? "fixed" : "absolute",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
+        inset: 0,
         overflow: "hidden",
-        zIndex: fixed ? -10 : undefined,
+        zIndex: fixed ? -10 : 0,
         filter: "brightness(0.5)",
         pointerEvents: "none",
       }}
     >
       <div
         style={{
-          width: "50vw",
-          height: "50vh",
-          transform: "scale(2)",
-          transformOrigin: "top left",
+          width: BASE_W,
+          height: BASE_H,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: `translate(-50%, -50%) scale(${scale})`,
         }}
       >
         <Component
