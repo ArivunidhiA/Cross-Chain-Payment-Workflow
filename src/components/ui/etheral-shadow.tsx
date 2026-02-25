@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef, useId, useEffect, CSSProperties } from 'react';
-import { animate, useMotionValue, AnimationPlaybackControls } from 'framer-motion';
+import React, { useEffect, useRef, CSSProperties } from 'react';
+import { animate, motion, useMotionValue, AnimationPlaybackControls } from 'framer-motion';
 
 // Type definitions
 interface ResponsiveImage {
@@ -47,13 +47,6 @@ function mapRange(
     return toLow + percentage * (toHigh - toLow);
 }
 
-const useInstanceId = (): string => {
-    const id = useId();
-    const cleanId = id.replace(/:/g, "");
-    const instanceId = `shadowoverlay-${cleanId}`;
-    return instanceId;
-};
-
 export function Component({
     sizing = 'fill',
     color = 'rgba(128, 128, 128, 1)',
@@ -62,42 +55,56 @@ export function Component({
     style,
     className
 }: ShadowOverlayProps) {
-    const id = useInstanceId();
-    const animationEnabled = animation && animation.scale > 0;
-    const feColorMatrixRef = useRef<SVGFEColorMatrixElement>(null);
-    const hueRotateMotionValue = useMotionValue(180);
-    const hueRotateAnimation = useRef<AnimationPlaybackControls | null>(null);
+    const animationEnabled = !!animation && animation.scale > 0;
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const zoom = useMotionValue(1.08);
+    const driftControls = useRef<AnimationPlaybackControls | null>(null);
+    const swayControls = useRef<AnimationPlaybackControls | null>(null);
+    const zoomControls = useRef<AnimationPlaybackControls | null>(null);
 
-    const displacementScale = animation ? mapRange(animation.scale, 1, 100, 20, 100) : 0;
-    const animationDuration = animation ? mapRange(animation.speed, 1, 100, 1000, 50) : 1;
+    const driftPx = animation ? mapRange(animation.scale, 1, 100, 8, 28) : 0;
+    const durationSec = animation ? mapRange(animation.speed, 1, 100, 24, 6) : 12;
 
     useEffect(() => {
-        if (feColorMatrixRef.current && animationEnabled) {
-            if (hueRotateAnimation.current) {
-                hueRotateAnimation.current.stop();
-            }
-            hueRotateMotionValue.set(0);
-            hueRotateAnimation.current = animate(hueRotateMotionValue, 360, {
-                duration: animationDuration / 25,
-                repeat: Infinity,
-                repeatType: "loop",
-                repeatDelay: 0,
-                ease: "linear",
-                delay: 0,
-                onUpdate: (value: number) => {
-                    if (feColorMatrixRef.current) {
-                        feColorMatrixRef.current.setAttribute("values", String(value));
-                    }
-                }
-            });
+        if (driftControls.current) driftControls.current.stop();
+        if (swayControls.current) swayControls.current.stop();
+        if (zoomControls.current) zoomControls.current.stop();
 
-            return () => {
-                if (hueRotateAnimation.current) {
-                    hueRotateAnimation.current.stop();
-                }
-            };
+        if (!animationEnabled) {
+            x.set(0);
+            y.set(0);
+            zoom.set(1.08);
+            return;
         }
-    }, [animationEnabled, animationDuration, hueRotateMotionValue]);
+
+        driftControls.current = animate(x, [0, driftPx, -driftPx, 0], {
+            duration: durationSec,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut"
+        });
+
+        swayControls.current = animate(y, [0, -driftPx * 0.7, driftPx * 0.7, 0], {
+            duration: durationSec * 1.15,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut"
+        });
+
+        zoomControls.current = animate(zoom, [1.07, 1.13, 1.07], {
+            duration: durationSec * 1.35,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut"
+        });
+
+        return () => {
+            if (driftControls.current) driftControls.current.stop();
+            if (swayControls.current) swayControls.current.stop();
+            if (zoomControls.current) zoomControls.current.stop();
+        };
+    }, [animationEnabled, driftPx, durationSec, x, y, zoom]);
 
     return (
         <div
@@ -110,64 +117,33 @@ export function Component({
                 ...style
             }}
         >
-            <div
+            <motion.div
                 style={{
                     position: "absolute",
-                    inset: -displacementScale,
-                    filter: animationEnabled ? `url(#${id}) blur(4px)` : "none"
+                    inset: -driftPx,
+                    x,
+                    y,
+                    scale: zoom,
+                    filter: "blur(6px)",
+                    willChange: "transform",
                 }}
             >
-                {animationEnabled && (
-                    <svg style={{ position: "absolute" }}>
-                        <defs>
-                            <filter id={id}>
-                                <feTurbulence
-                                    result="undulation"
-                                    numOctaves="2"
-                                    baseFrequency={`${mapRange(animation.scale, 0, 100, 0.001, 0.0005)},${mapRange(animation.scale, 0, 100, 0.004, 0.002)}`}
-                                    seed="0"
-                                    type="turbulence"
-                                />
-                                <feColorMatrix
-                                    ref={feColorMatrixRef}
-                                    in="undulation"
-                                    type="hueRotate"
-                                    values="180"
-                                />
-                                <feColorMatrix
-                                    in="dist"
-                                    result="circulation"
-                                    type="matrix"
-                                    values="4 0 0 0 1  4 0 0 0 1  4 0 0 0 1  1 0 0 0 0"
-                                />
-                                <feDisplacementMap
-                                    in="SourceGraphic"
-                                    in2="circulation"
-                                    scale={displacementScale}
-                                    result="dist"
-                                />
-                                <feDisplacementMap
-                                    in="dist"
-                                    in2="undulation"
-                                    scale={displacementScale}
-                                    result="output"
-                                />
-                            </filter>
-                        </defs>
-                    </svg>
-                )}
                 <div
                     style={{
                         backgroundColor: color,
                         maskImage: `url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png')`,
+                        WebkitMaskImage: `url('https://framerusercontent.com/images/ceBGguIpUU8luwByxuQz79t7To.png')`,
                         maskSize: sizing === "stretch" ? "100% 100%" : "cover",
+                        WebkitMaskSize: sizing === "stretch" ? "100% 100%" : "cover",
                         maskRepeat: "no-repeat",
+                        WebkitMaskRepeat: "no-repeat",
                         maskPosition: "center",
+                        WebkitMaskPosition: "center",
                         width: "100%",
                         height: "100%"
                     }}
                 />
-            </div>
+            </motion.div>
 
             {noise && noise.opacity > 0 && (
                 <div
