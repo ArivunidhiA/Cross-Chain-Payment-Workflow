@@ -120,7 +120,7 @@ export class ChainAdapter {
     const jitter = 0.5 + Math.random();
     const confirmMs = Math.round(this.config.avgConfirmationMs * jitter);
 
-    await sleep(Math.min(confirmMs, 3000));
+    await sleep(Math.min(confirmMs, 500));
 
     if (shouldFail(this.config)) {
       const error = randomFailure(this.config.id);
@@ -139,7 +139,7 @@ export class ChainAdapter {
 
   async waitForConfirmation(txHash: string): Promise<TransactionReceipt> {
     const waitMs = Math.round(this.config.avgConfirmationMs * 0.3);
-    await sleep(Math.min(waitMs, 1500));
+    await sleep(Math.min(waitMs, 300));
 
     return {
       txHash,
@@ -152,12 +152,12 @@ export class ChainAdapter {
   }
 
   async getBalance(_address: string, _token: string): Promise<number> {
-    await sleep(200);
+    await sleep(50);
     return 1000 + Math.random() * 9000;
   }
 
   async estimateGas(): Promise<number> {
-    await sleep(100);
+    await sleep(50);
     return this.config.baseFee * (0.9 + Math.random() * 0.2);
   }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getWorkflow } from "@/db/store";
 import { executeWorkflow } from "@/engine/workflow-engine";
 
+export const maxDuration = 30;
+
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -37,13 +39,12 @@ export async function POST(
       );
     }
 
-    executeWorkflow(id).catch((err) => {
-      console.error(`Workflow ${id} execution error:`, err);
-    });
+    const completed = await executeWorkflow(id);
 
     return NextResponse.json({
-      message: "Execution started",
+      message: "Execution completed",
       workflowId: id,
+      status: completed.status,
     });
   } catch (error) {
     return NextResponse.json(

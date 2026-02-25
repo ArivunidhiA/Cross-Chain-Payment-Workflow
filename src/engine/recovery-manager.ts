@@ -89,7 +89,7 @@ export class RecoveryManager {
         metadata: { attempt: String(attempt), backoffMs: String(Math.round(backoff)) },
       });
 
-      await new Promise((resolve) => setTimeout(resolve, Math.min(backoff, 2000)));
+      await new Promise((resolve) => setTimeout(resolve, Math.min(backoff, 400)));
 
       const result = await executeStep(stepDef, {
         workflowId: workflow.id,
@@ -157,7 +157,7 @@ export class RecoveryManager {
         metadata: { originalTxHash: step.txHash || "none" },
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     this.logger.log({
