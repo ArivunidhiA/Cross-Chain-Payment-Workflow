@@ -86,11 +86,3 @@ h1, h2, h3, h4, h5, h6 {
   display: none;
 }
 
-.ethereal-shadow-bg {
-  width: 100vw !important;
-  height: 100vh !important;
-}
-
-.ethereal-shadow-bg > div:nth-child(2) {
-  display: none !important;
-}
