@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { EtherealBackground } from "@/components/ethereal-background";
+import { Component } from "@/components/ui/etheral-shadow";
 import { Github, Linkedin, Globe, Twitter, ArrowRight } from "lucide-react";
 
 const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
@@ -33,7 +33,18 @@ const socials = [
 export default function LandingPage() {
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      <EtherealBackground />
+      <div
+        className="absolute inset-0"
+        style={{ filter: "brightness(0.5)" }}
+      >
+        <Component
+          className="ethereal-shadow-bg"
+          color="rgba(128, 128, 128, 1)"
+          animation={{ scale: 100, speed: 90 }}
+          noise={{ opacity: 1, scale: 1.2 }}
+          sizing="fill"
+        />
+      </div>
 
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <div className="flex flex-col items-center gap-8 text-center px-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { AppNavigation } from "@/components/app-navigation";
-import { EtherealBackground } from "@/components/ethereal-background";
+import { Component } from "@/components/ui/etheral-shadow";
 
 export default function AppLayout({
   children,
@@ -10,7 +10,18 @@ export default function AppLayout({
 }) {
   return (
     <>
-      <EtherealBackground fixed />
+      <div
+        className="fixed inset-0 -z-10"
+        style={{ filter: "brightness(0.5)" }}
+      >
+        <Component
+          className="ethereal-shadow-bg"
+          color="rgba(128, 128, 128, 1)"
+          animation={{ scale: 100, speed: 90 }}
+          noise={{ opacity: 1, scale: 1.2 }}
+          sizing="fill"
+        />
+      </div>
       <main className="relative mx-auto min-h-screen max-w-6xl px-6 pb-28 pt-8">
         {children}
       </main>
