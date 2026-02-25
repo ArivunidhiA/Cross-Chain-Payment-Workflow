@@ -43,8 +43,15 @@ export default function LogsPage() {
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 4000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    function start() { if (!interval) interval = setInterval(fetchLogs, 4000); }
+    function stop() { if (interval) { clearInterval(interval); interval = null; } }
+    function onVisibility() { document.hidden ? stop() : (fetchLogs(), start()); }
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisibility); };
   }, [fetchLogs]);
 
   return (

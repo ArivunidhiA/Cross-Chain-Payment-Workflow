@@ -54,8 +54,15 @@ export default function WorkflowsPage() {
 
   useEffect(() => {
     fetchWorkflows();
-    const interval = setInterval(fetchWorkflows, 3000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    function start() { if (!interval) interval = setInterval(fetchWorkflows, 3000); }
+    function stop() { if (interval) { clearInterval(interval); interval = null; } }
+    function onVisibility() { document.hidden ? stop() : (fetchWorkflows(), start()); }
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisibility); };
   }, [fetchWorkflows]);
 
   async function createAndExecute(templateId: string) {

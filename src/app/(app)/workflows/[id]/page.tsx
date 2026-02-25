@@ -44,8 +44,15 @@ export default function WorkflowDetailPage() {
 
   useEffect(() => {
     fetchDetail();
-    const interval = setInterval(fetchDetail, 2000);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    function start() { if (!interval) interval = setInterval(fetchDetail, 2000); }
+    function stop() { if (interval) { clearInterval(interval); interval = null; } }
+    function onVisibility() { document.hidden ? stop() : (fetchDetail(), start()); }
+
+    start();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisibility); };
   }, [fetchDetail]);
 
   async function execute() {
