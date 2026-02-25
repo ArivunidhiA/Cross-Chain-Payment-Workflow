@@ -1,45 +1,40 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { AnimatedNumber } from "@/components/animated-number";
 import { cn } from "@/lib/utils";
-import { type LucideIcon } from "lucide-react";
 
 interface StatsCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: LucideIcon;
-  trend?: "up" | "down" | "neutral";
+  label: string;
+  value: number;
+  suffix?: string;
+  format?: (n: number) => string;
+  accent?: boolean;
 }
 
 export function StatsCard({
-  title,
+  label,
   value,
-  subtitle,
-  icon: Icon,
-  trend,
+  suffix,
+  format,
+  accent,
 }: StatsCardProps) {
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-sm text-white/40">{title}</p>
-          <p
-            className={cn(
-              "text-2xl font-semibold font-[family-name:var(--font-heading)]",
-              trend === "up" && "text-green-400",
-              trend === "down" && "text-red-400",
-              !trend && "text-white/90"
-            )}
-          >
-            {value}
-          </p>
-          {subtitle && <p className="text-xs text-white/30">{subtitle}</p>}
-        </div>
-        <div className="rounded-xl bg-white/[0.04] p-2.5">
-          <Icon size={18} className="text-white/30" />
-        </div>
-      </div>
-    </Card>
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wider text-faint">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1 font-heading text-2xl font-semibold tabular-nums",
+          accent ? "text-accent" : "text-foreground"
+        )}
+        style={{ textShadow: "0 0 12px rgba(255, 255, 255, 0.4), 0 0 40px rgba(255, 255, 255, 0.18)" }}
+      >
+        <AnimatedNumber value={value} format={format} />
+        {suffix && (
+          <span className="ml-0.5 text-base text-muted">{suffix}</span>
+        )}
+      </p>
+    </div>
   );
 }

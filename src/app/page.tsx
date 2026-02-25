@@ -1,197 +1,114 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { PageWrapper } from "@/components/page-wrapper";
-import { StatsCard } from "@/components/stats-card";
-import { WorkflowCard } from "@/components/workflow-card";
-import { ChainStatusCard } from "@/components/chain-status-card";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  GitBranch,
-  CheckCircle2,
-  Activity,
-  Timer,
-  Rocket,
-} from "lucide-react";
-import type { Workflow, ChainConfig } from "@/types";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Component } from "@/components/ui/etheral-shadow";
+import { Github, Linkedin, Globe, Twitter, ArrowRight } from "lucide-react";
 
-interface Stats {
-  total: number;
-  completed: number;
-  failed: number;
-  active: number;
-  successRate: number;
-  avgDurationMs: number;
-}
+const ease: [number, number, number, number] = [0.21, 0.47, 0.32, 0.98];
 
-const TEMPLATES = [
+const socials = [
   {
-    id: "cross_chain_swap",
-    name: "Cross-Chain Swap",
-    desc: "Onramp → Bridge → Swap → Transfer",
+    icon: Github,
+    href: "https://github.com/ArivunidhiA",
+    label: "GitHub",
   },
   {
-    id: "multi_hop",
-    name: "Multi-Hop",
-    desc: "Bridge A→C → Swap → Transfer",
+    icon: Linkedin,
+    href: "https://www.linkedin.com/in/arivunidhi-anna-arivan/",
+    label: "LinkedIn",
   },
   {
-    id: "failure_scenario",
-    name: "Failure Test",
-    desc: "High-failure route for recovery testing",
+    icon: Globe,
+    href: "https://arivfolio.tech/",
+    label: "Portfolio",
+  },
+  {
+    icon: Twitter,
+    href: "https://x.com/Ariv_2012",
+    label: "X",
   },
 ];
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [chains, setChains] = useState<ChainConfig[]>([]);
-  const [launching, setLaunching] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    const [statsRes, wfRes, chainsRes] = await Promise.all([
-      fetch("/api/stats"),
-      fetch("/api/workflows?limit=10"),
-      fetch("/api/chains"),
-    ]);
-    const statsData = await statsRes.json();
-    const wfData = await wfRes.json();
-    const chainsData = await chainsRes.json();
-    setStats(statsData);
-    setWorkflows(wfData.workflows || []);
-    setChains(chainsData.chains || []);
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 4000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
-
-  async function launchWorkflow(templateId: string) {
-    setLaunching(templateId);
-    try {
-      const createRes = await fetch("/api/workflows", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateId }),
-      });
-      const { workflow } = await createRes.json();
-
-      await fetch(`/api/workflows/${workflow.id}/execute`, {
-        method: "POST",
-      });
-
-      await fetchData();
-    } finally {
-      setLaunching(null);
-    }
-  }
-
+export default function LandingPage() {
   return (
-    <PageWrapper>
-      <div className="space-y-8">
-        <div>
-          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-semibold text-white/90">
-            Workflow Orchestrator
-          </h1>
-          <p className="mt-1 text-sm text-white/40">
-            Cross-chain payment workflow engine with failure recovery
-          </p>
-        </div>
+    <div className="relative w-full h-screen">
+      <div className="flex w-full h-screen justify-center items-center" style={{ filter: "brightness(0.5)" }}>
+        <Component
+          color="rgba(128, 128, 128, 1)"
+          animation={{ scale: 100, speed: 90 }}
+          noise={{ opacity: 1, scale: 1.2 }}
+          sizing="fill"
+        />
+      </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Total Workflows"
-            value={stats?.total ?? "—"}
-            icon={GitBranch}
-          />
-          <StatsCard
-            title="Success Rate"
-            value={stats ? `${stats.successRate}%` : "—"}
-            icon={CheckCircle2}
-            trend={
-              stats
-                ? stats.successRate >= 70
-                  ? "up"
-                  : "down"
-                : undefined
-            }
-          />
-          <StatsCard
-            title="Active"
-            value={stats?.active ?? "—"}
-            icon={Activity}
-          />
-          <StatsCard
-            title="Avg Duration"
-            value={
-              stats?.avgDurationMs
-                ? `${(stats.avgDurationMs / 1000).toFixed(1)}s`
-                : "—"
-            }
-            icon={Timer}
-          />
-        </div>
+      <div
+        className="absolute inset-0 z-10 flex items-center justify-center"
+      >
+        <div className="flex flex-col items-center gap-8 text-center px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease }}
+            className="font-heading text-5xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl"
+          >
+            Orchestrator
+          </motion.h1>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Launch</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {TEMPLATES.map((t) => (
-                <Button
-                  key={t.id}
-                  variant="ghost"
-                  className="h-auto flex-col items-start gap-1 p-4 text-left"
-                  onClick={() => launchWorkflow(t.id)}
-                  disabled={launching !== null}
-                >
-                  <div className="flex w-full items-center gap-2">
-                    <Rocket size={14} className="text-green-500" />
-                    <span className="text-sm font-medium text-white/80">
-                      {t.name}
-                    </span>
-                  </div>
-                  <span className="text-xs text-white/30">{t.desc}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.12, ease }}
+            className="max-w-md text-base text-muted sm:text-lg"
+          >
+            Cross-chain payment workflows with failure recovery across
+            blockchain networks
+          </motion.p>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold text-white/80">
-              Recent Workflows
-            </h2>
-            {workflows.length === 0 ? (
-              <Card className="p-8 text-center text-sm text-white/30">
-                No workflows yet. Launch one above to get started.
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {workflows.map((wf, i) => (
-                  <WorkflowCard key={wf.id} workflow={wf} index={i} />
-                ))}
-              </div>
-            )}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.24, ease }}
+            className="flex items-center gap-5"
+          >
+            {socials.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="text-faint transition-colors duration-200 hover:text-foreground"
+              >
+                <s.icon size={20} />
+              </a>
+            ))}
+          </motion.div>
 
-          <div>
-            <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold text-white/80">
-              Chain Status
-            </h2>
-            <div className="space-y-3">
-              {chains.map((chain) => (
-                <ChainStatusCard key={chain.id} chain={chain} />
-              ))}
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.36, ease }}
+          >
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg border border-edge px-5 py-2.5 text-sm font-medium text-foreground transition-all duration-200 hover:border-edge-hover hover:bg-surface active:scale-[0.98]"
+            >
+              Enter Dashboard
+              <ArrowRight size={16} />
+            </Link>
+          </motion.div>
         </div>
       </div>
-    </PageWrapper>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.6, ease }}
+        className="absolute bottom-6 left-0 right-0 z-10 text-center text-[11px] text-faint"
+      >
+        Note: this is a demo to illustrate what happens under the hood
+      </motion.p>
+    </div>
   );
 }

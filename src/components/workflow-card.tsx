@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Clock, ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Workflow } from "@/types";
 
 function statusVariant(
   status: string
-): "default" | "secondary" | "destructive" | "outline" | "warning" {
+): "default" | "secondary" | "destructive" | "warning" {
   switch (status) {
     case "COMPLETED":
       return "default";
@@ -27,77 +26,84 @@ function statusVariant(
 
 interface WorkflowCardProps {
   workflow: Workflow;
-  index?: number;
 }
 
-export function WorkflowCard({ workflow, index = 0 }: WorkflowCardProps) {
+export function WorkflowCard({ workflow }: WorkflowCardProps) {
   const progress =
     workflow.totalSteps > 0
       ? (workflow.currentStep / workflow.totalSteps) * 100
       : 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        delay: index * 0.05,
-      }}
-    >
-      <Link href={`/workflows/${workflow.id}`}>
-        <Card className="group cursor-pointer p-5 transition-colors hover:bg-white/[0.06]">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-xs text-white/30">
-                  {workflow.id}
-                </span>
-                <Badge variant={statusVariant(workflow.status)}>
-                  {workflow.status}
-                </Badge>
-              </div>
-              <h3 className="truncate font-[family-name:var(--font-heading)] text-sm font-semibold text-white/90">
+    <Link href={`/workflows/${workflow.id}`}>
+      <motion.div
+        className="spotlight group rounded-xl border border-edge bg-surface p-5 transition-colors duration-200 hover:border-edge-hover"
+        whileHover={{ y: -4, scale: 1.015 }}
+        transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          e.currentTarget.style.setProperty(
+            "--spotlight-x",
+            `${e.clientX - rect.left}px`
+          );
+          e.currentTarget.style.setProperty(
+            "--spotlight-y",
+            `${e.clientY - rect.top}px`
+          );
+        }}
+      >
+        <div className="relative z-10 flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5">
+              <h3 className="font-heading text-sm font-semibold text-foreground">
                 {workflow.name}
               </h3>
-              <p className="text-xs text-white/40">{workflow.description}</p>
+              <Badge variant={statusVariant(workflow.status)}>
+                {workflow.status}
+              </Badge>
             </div>
-            <ArrowRight
-              size={16}
-              className="mt-1 shrink-0 text-white/20 transition-transform group-hover:translate-x-0.5 group-hover:text-white/40"
-            />
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between text-xs text-white/40">
+            <p className="mt-1 text-sm text-muted">{workflow.description}</p>
+            <div className="mt-2 flex items-center gap-3 text-xs text-faint">
+              <span className="font-mono">{workflow.id.slice(0, 8)}</span>
+              <span>·</span>
               <span>
-                Step {Math.min(workflow.currentStep, workflow.totalSteps)} of{" "}
+                Step {Math.min(workflow.currentStep, workflow.totalSteps)}/
                 {workflow.totalSteps}
               </span>
-              <span className="flex items-center gap-1">
-                <Clock size={12} />
+              <span>·</span>
+              <span>
                 {new Date(workflow.createdAt).toLocaleTimeString()}
               </span>
             </div>
-            <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  workflow.status === "COMPLETED"
-                    ? "bg-green-500"
-                    : workflow.status === "FAILED" ||
-                        workflow.status === "WITHDRAWN"
-                      ? "bg-red-500"
-                      : "bg-green-500/60"
-                )}
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
           </div>
-        </Card>
-      </Link>
-    </motion.div>
+          <ArrowUpRight
+            size={16}
+            className="mt-0.5 shrink-0 text-faint transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-muted"
+          />
+        </div>
+
+        <div className="relative z-10 mt-4">
+          <div className="h-[3px] w-full overflow-hidden rounded-full bg-edge">
+            <motion.div
+              className={cn(
+                "h-full rounded-full",
+                workflow.status === "COMPLETED"
+                  ? "bg-accent"
+                  : workflow.status === "FAILED" ||
+                      workflow.status === "WITHDRAWN"
+                    ? "bg-red-500"
+                    : "bg-accent/50"
+              )}
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(progress, 100)}%` }}
+              transition={{
+                duration: 0.8,
+                ease: [0.21, 0.47, 0.32, 0.98],
+              }}
+            />
+          </div>
+        </div>
+      </motion.div>
+    </Link>
   );
 }

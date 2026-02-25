@@ -8,24 +8,22 @@ import { WorkflowTimeline } from "@/components/workflow-timeline";
 import { AuditLogTable } from "@/components/audit-log-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Play, RefreshCw } from "lucide-react";
+import { Reveal } from "@/components/motion";
+import { ArrowLeft, Play, Loader2 } from "lucide-react";
 import type { Workflow, AuditEntry } from "@/types";
 
-function statusVariant(
-  status: string
-): "default" | "secondary" | "destructive" | "warning" {
+function statusVariant(status: string) {
   switch (status) {
     case "COMPLETED":
-      return "default";
+      return "default" as const;
     case "FAILED":
     case "WITHDRAWN":
-      return "destructive";
+      return "destructive" as const;
     case "EXECUTING":
     case "RECOVERING":
-      return "warning";
+      return "warning" as const;
     default:
-      return "secondary";
+      return "secondary" as const;
   }
 }
 
@@ -62,8 +60,8 @@ export default function WorkflowDetailPage() {
   if (!workflow) {
     return (
       <PageWrapper>
-        <div className="flex h-64 items-center justify-center text-sm text-white/30">
-          Loading workflow...
+        <div className="flex h-64 items-center justify-center text-sm text-faint">
+          Loading…
         </div>
       </PageWrapper>
     );
@@ -76,27 +74,29 @@ export default function WorkflowDetailPage() {
 
   return (
     <PageWrapper>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="space-y-8">
+        <div className="flex items-start gap-4">
           <Link href="/workflows">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="mt-1">
               <ArrowLeft size={16} />
             </Button>
           </Link>
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <h1 className="font-[family-name:var(--font-heading)] text-xl font-semibold text-white/90">
+              <h1 className="font-heading text-2xl font-semibold tracking-tight">
                 {workflow.name}
               </h1>
               <Badge variant={statusVariant(workflow.status)}>
                 {workflow.status}
               </Badge>
             </div>
-            <p className="mt-0.5 text-sm text-white/40">
-              <span className="font-mono">{workflow.id}</span>
-              {" · "}
-              Created {new Date(workflow.createdAt).toLocaleString()}
-            </p>
+            <div className="mt-1.5 flex items-center gap-2 text-sm text-faint">
+              <span className="font-mono text-xs">{workflow.id}</span>
+              <span>·</span>
+              <span>
+                {new Date(workflow.createdAt).toLocaleString()}
+              </span>
+            </div>
           </div>
           {!isTerminal && !isRunning && (
             <Button onClick={execute} disabled={executing}>
@@ -106,47 +106,47 @@ export default function WorkflowDetailPage() {
           )}
           {isRunning && (
             <Button variant="ghost" disabled>
-              <RefreshCw size={14} className="animate-spin" />
-              Running...
+              <Loader2 size={14} className="animate-spin" />
+              Running
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Step Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+          <Reveal className="lg:col-span-2">
+            <div className="rounded-xl border border-edge bg-surface p-6">
+              <h2 className="font-heading text-base font-medium">
+                Step Progress
+              </h2>
+              <div className="mt-5">
                 <WorkflowTimeline
                   steps={workflow.definition.steps}
                   results={workflow.stepResults}
                   currentStep={workflow.currentStep}
                 />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </div>
+          </Reveal>
 
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Audit Trail</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Reveal delay={0.08} className="lg:col-span-3">
+            <div className="rounded-xl border border-edge bg-surface p-6">
+              <h2 className="font-heading text-base font-medium">
+                Audit Trail
+              </h2>
+              <div className="mt-5">
                 <AuditLogTable logs={logs} />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
 
         {workflow.error && (
-          <Card className="border-red-500/20 bg-red-500/[0.04]">
-            <CardContent className="p-5">
+          <Reveal>
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
               <p className="text-sm font-medium text-red-400">Error</p>
               <p className="mt-1 text-sm text-red-400/70">{workflow.error}</p>
-            </CardContent>
-          </Card>
+            </div>
+          </Reveal>
         )}
       </div>
     </PageWrapper>
