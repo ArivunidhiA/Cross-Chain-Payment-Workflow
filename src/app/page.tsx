@@ -33,7 +33,7 @@ const socials = [
 export default function LandingPage() {
   return (
     <div className="relative w-full h-screen">
-      <div className="flex w-full h-screen justify-center items-center" style={{ filter: "brightness(0.5)" }}>
+      <div className="absolute inset-0" style={{ filter: "brightness(0.5)" }}>
         <Component
           color="rgba(128, 128, 128, 1)"
           animation={{ scale: 100, speed: 90 }}

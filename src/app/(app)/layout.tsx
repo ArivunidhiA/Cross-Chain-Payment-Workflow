@@ -8,7 +8,7 @@ export default function AppLayout({
 }) {
   return (
     <>
-      <div className="fixed inset-0 -z-10 flex w-full h-full justify-center items-center" style={{ filter: "brightness(0.5)" }}>
+      <div className="fixed inset-0 -z-10" style={{ filter: "brightness(0.5)" }}>
         <Component
           color="rgba(128, 128, 128, 1)"
           animation={{ scale: 100, speed: 90 }}
